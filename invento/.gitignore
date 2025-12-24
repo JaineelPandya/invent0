@@ -1,0 +1,115 @@
+# ========================================
+# Python / Django .gitignore
+# ========================================
+
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+*.env
+.envrc
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# IDE / Editor settings
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# Django specific
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+*.pot
+*.pyc
+staticfiles/
+mediafiles/
+media/
+
+# Migrations (uncomment if you want to ignore)
+# */migrations/*.py
+# !*/migrations/__init__.py
+
+# Test / Coverage
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Docker
+*.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Backup files
+*.bak
+*.backup
+
+# Secrets / Credentials (additional patterns)
+secrets.json
+credentials.json
+*.pem
+*.key
+serviceAccountKey.json
