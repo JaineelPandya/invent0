@@ -8,19 +8,29 @@ from accounts.models import User
 
 @receiver(post_save, sender=Inventory)
 def low_stock_alert(sender, instance, **kwargs):
-    if instance.quantity < instance.low_stock_threshold:
-        admins = User.objects.filter(role='admin').values_list('email', flat=True)
+    """
+    Send email alert to admins when inventory item falls below reorder level.
+    Uses fail_silently=True and try/except to prevent email failures from crashing saves.
+    """
+    try:
+        if instance.quantity <= instance.reorder_level:
+            admins = User.objects.filter(role='admin').values_list('email', flat=True)
 
-        if admins:
-            send_mail(
-                subject='⚠️ Low Stock Alert',
-                message=f'''
+            if admins:
+                send_mail(
+                    subject='⚠️ Low Stock Alert',
+                    message=f'''
 Item: {instance.name}
 SKU: {instance.sku}
 Quantity left: {instance.quantity}
-Threshold: {instance.low_stock_threshold}
-                ''',
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=list(admins),
-                fail_silently=False
-            )
+Reorder Level: {instance.reorder_level}
+                    ''',
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=list(admins),
+                    fail_silently=True  # Don't crash on email failure
+                )
+    except Exception as e:
+        # Log the error but don't crash the save operation
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Failed to send low stock alert for {instance.sku}: {e}")

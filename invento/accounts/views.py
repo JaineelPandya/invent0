@@ -5,6 +5,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
+from django.conf import settings
+from django.utils import timezone
 
 from .serializers import (
     UserSerializer, 
@@ -33,6 +36,26 @@ class RegisterView(generics.CreateAPIView):
         # Generate tokens for the new user
         refresh = RefreshToken.for_user(user)
         
+        # Send welcome email
+        try:
+            send_mail(
+                subject='Welcome to Invento - Account Created',
+                message=f'''Hello {user.first_name or user.email},
+
+Your Invento account has been created successfully!
+
+You can now log in and start managing your inventory.
+
+Best regards,
+The Invento Team
+                ''',
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                fail_silently=True
+            )
+        except Exception as e:
+            print(f"Failed to send welcome email: {e}")
+        
         return Response({
             'message': 'User registered successfully',
             'user': UserSerializer(user).data,
@@ -46,8 +69,43 @@ class RegisterView(generics.CreateAPIView):
 class CustomTokenObtainPairView(TokenObtainPairView):
     """
     Custom JWT login view that returns user details with tokens.
+    Also sends a login notification email to the user.
     """
     serializer_class = CustomTokenObtainPairSerializer
+    
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        
+        if response.status_code == 200:
+            # Send login notification email
+            email = request.data.get('email')
+            if email:
+                try:
+                    user = User.objects.get(email=email)
+                    login_time = timezone.now().strftime('%Y-%m-%d %H:%M:%S')
+                    
+                    send_mail(
+                        subject='Invento - Login Notification',
+                        message=f'''Hello {user.first_name or user.email},
+
+You have successfully logged into Invento.
+
+Login Time: {login_time}
+IP Address: {request.META.get('REMOTE_ADDR', 'Unknown')}
+
+If this wasn't you, please contact support immediately.
+
+Best regards,
+The Invento Team
+                        ''',
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[user.email],
+                        fail_silently=True
+                    )
+                except Exception as e:
+                    print(f"Failed to send login notification: {e}")
+        
+        return response
 
 
 class LogoutView(APIView):
@@ -95,11 +153,9 @@ class UserListView(generics.ListAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated, IsAdmin]
 
-from django.core.mail import send_mail
-from django.http import HttpResponse
-from django.conf import settings
 
 def test_email(request):
+    from django.http import HttpResponse
     send_mail(
         subject='Test Email',
         message='Email setup successful!',

@@ -1,0 +1,195 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alerts - Invento</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard-layout.css' %}">
+    <style>
+        .alert-timeline {
+            position: relative;
+            padding-left: var(--space-4);
+        }
+
+        .alert-timeline::before {
+            content: '';
+            position: absolute;
+            left: 12px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border-color);
+        }
+
+        .alert-item {
+            position: relative;
+            padding: var(--space-3);
+            margin-bottom: var(--space-3);
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            transition: box-shadow var(--transition-fast);
+        }
+
+        .alert-item:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .alert-item::before {
+            content: '';
+            position: absolute;
+            left: -20px;
+            top: 24px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid var(--bg-secondary);
+            background: var(--color-primary-600);
+        }
+
+        .alert-item.alert-warning::before {
+            background: var(--color-warning-500);
+        }
+
+        .alert-item.alert-danger::before {
+            background: var(--color-danger-500);
+        }
+
+        .alert-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-secondary);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="sidebar-placeholder"></div>
+
+        <div class="main-content">
+            <div id="navbar-placeholder"></div>
+
+            <main class="page-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Alerts & Notifications</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert-timeline" id="alerts-container">
+                            <div style="text-align: center; padding: var(--space-4);">
+                                Loading alerts...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="{% static 'js/api-client.js' %}"></script>
+    <script src="{% static 'js/auth.js' %}"></script>
+    <script src="{% static 'js/theme.js' %}"></script>
+    <script src="{% static 'js/ui-utils.js' %}"></script>
+    <script src="{% static 'js/layout-loader.js' %}"></script>
+
+    <script>
+        async function loadAlerts() {
+            try {
+                const response = await apiClient.get('/inventory/');
+                const items = response.results || response || [];
+
+                const alerts = [];
+                items.forEach(item => {
+                    if (item.quantity <= (item.reorder_level || 10)) {
+                        alerts.push({
+                            type: 'warning',
+                            title: 'Low Stock Alert',
+                            message: `${item.name} (SKU: ${item.sku}) is running low. Current stock: ${item.quantity}`,
+                            time: new Date(),
+                            item_id: item.id
+                        });
+                    }
+                    if (item.expiry_date && new Date(item.expiry_date) < new Date()) {
+                        alerts.push({
+                            type: 'danger',
+                            title: 'Expired Item',
+                            message: `${item.name} (SKU: ${item.sku}) has expired on ${formatDate(item.expiry_date)}`,
+                            time: new Date(),
+                            item_id: item.id
+                        });
+                    }
+                });
+
+                renderAlerts(alerts);
+            } catch (error) {
+                console.error('Alerts load error:', error);
+                document.getElementById('alerts-container').innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-title">Failed to load alerts</div>
+            <div class="empty-state-text">Please try refreshing the page</div>
+          </div>
+        `;
+            }
+        }
+
+        function renderAlerts(alerts) {
+            const container = document.getElementById('alerts-container');
+
+            if (alerts.length === 0) {
+                container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-title">No Alerts</div>
+            <div class="empty-state-text">All items are in good stock condition</div>
+          </div>
+        `;
+                return;
+            }
+
+            container.innerHTML = alerts.map(alert => `
+        <div class="alert-item alert-${alert.type}">
+          <div class="d-flex gap-3">
+            <div class="alert-icon">
+              ${alert.type === 'warning' ? `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                  <line x1="12" y1="9" x2="12" y2="13"></line>
+                  <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+              ` : `
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="15" y1="9" x2="9" y2="15"></line>
+                  <line x1="9" y1="9" x2="15" y2="15"></line>
+                </svg>
+              `}
+            </div>
+            <div style="flex: 1;">
+              <div class="font-semibold text-primary mb-1">${alert.title}</div>
+              <div class="text-secondary text-sm">${alert.message}</div>
+              <div class="text-tertiary text-xs mt-1">${formatRelativeTime(alert.time)}</div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAlerts();
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,148 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Item - Invento</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard-layout.css' %}">
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="sidebar-placeholder"></div>
+
+        <div class="main-content">
+            <div id="navbar-placeholder"></div>
+
+            <main class="page-content">
+                <div class="card" style="max-width: 800px; margin: 0 auto;">
+                    <div class="card-header">
+                        <h3 class="card-title">Add New Inventory Item</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="add-item-form">
+                            <div class="form-group">
+                                <label for="name" class="form-label form-label-required">Item Name</label>
+                                <input type="text" id="name" class="form-control" placeholder="Enter item name"
+                                    required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="sku" class="form-label form-label-required">SKU</label>
+                                <input type="text" id="sku" class="form-control" placeholder="Enter SKU" required>
+                                <span class="form-helper">Unique item identifier</span>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+                                <div class="form-group">
+                                    <label for="category" class="form-label form-label-required">Category</label>
+                                    <input type="text" id="category" class="form-control"
+                                        placeholder="e.g., Electronics" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="supplier" class="form-label">Supplier</label>
+                                    <input type="text" id="supplier" class="form-control" placeholder="Supplier name">
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-3);">
+                                <div class="form-group">
+                                    <label for="quantity" class="form-label form-label-required">Quantity</label>
+                                    <input type="number" id="quantity" class="form-control" min="0" placeholder="0"
+                                        required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="unit_price" class="form-label form-label-required">Unit Price</label>
+                                    <input type="number" id="unit_price" class="form-control" min="0" step="0.01"
+                                        placeholder="0.00" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="reorder_level" class="form-label">Reorder Level</label>
+                                    <input type="number" id="reorder_level" class="form-control" min="0"
+                                        placeholder="10">
+                                    <span class="form-helper">Min stock before alert</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="expiry_date" class="form-label">Expiry Date</label>
+                                <input type="date" id="expiry_date" class="form-control">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea id="description" class="form-control" rows="4"
+                                    placeholder="Optional description"></textarea>
+                            </div>
+
+                            <div style="display: flex; gap:var(--space-2); justify-content: flex-end;">
+                                <a href="/inventory/" class="btn btn-secondary">Cancel</a>
+                                <button type="submit" class="btn btn-primary" id="submit-btn">Save Item</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="{% static 'js/api-client.js' %}"></script>
+    <script src="{% static 'js/auth.js' %}"></script>
+    <script src="{% static 'js/theme.js' %}"></script>
+    <script src="{% static 'js/ui-utils.js' %}"></script>
+    <script src="{% static 'js/layout-loader.js' %}"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('add-item-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const formData = {
+                    name: document.getElementById('name').value.trim(),
+                    sku: document.getElementById('sku').value.trim(),
+                    category_name: document.getElementById('category').value.trim(),
+                    supplier_name: document.getElementById('supplier').value.trim() || null,
+                    quantity: parseInt(document.getElementById('quantity').value),
+                    unit_price: parseFloat(document.getElementById('unit_price').value),
+                    reorder_level: parseInt(document.getElementById('reorder_level').value) || 10,
+                    expiry_date: document.getElementById('expiry_date').value || null,
+                    description: document.getElementById('description').value.trim() || null,
+                };
+
+                // Validation
+                if (!validateRequired(formData.name)) {
+                    showFieldError('name', 'Item name is required');
+                    return;
+                }
+                if (!validateRequired(formData.sku)) {
+                    showFieldError('sku', 'SKU is required');
+                    return;
+                }
+
+                showLoading('submit-btn');
+
+                try {
+                    await apiClient.post('/inventory/', formData);
+                    showToast('Success', 'Item added successfully!', 'success');
+                    setTimeout(() => window.location.href = '/inventory/', 1500);
+                } catch (error) {
+                    hideLoading('submit-btn');
+                    showToast('Error', error.message || 'Failed to add item', 'error');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

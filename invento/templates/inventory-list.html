@@ -1,0 +1,115 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory - Invento</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard-layout.css' %}">
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="sidebar-placeholder"></div>
+
+        <div class="main-content">
+            <div id="navbar-placeholder"></div>
+
+            <main class="page-content">
+                <!-- Search and Filter -->
+                <div class="table-container">
+                    <div class="table-header">
+                        <div class="input-group" style="max-width: 400px;">
+                            <span class="input-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <path d="m21 21-4.35-4.35"></path>
+                                </svg>
+                            </span>
+                            <input type="text" id="search-input" class="form-control"
+                                placeholder="Search by name or SKU...">
+                        </div>
+
+                        <div class="table-actions">
+                            <select id="category-filter" class="form-control" style="width: 180px;">
+                                <option value="">All Categories</option>
+                            </select>
+
+                            <select id="status-filter" class="form-control" style="width: 150px;">
+                                <option value="">All Status</option>
+                                <option value="in_stock">In Stock</option>
+                                <option value="low_stock">Low Stock</option>
+                                <option value="expired">Expired</option>
+                            </select>
+
+                            <a href="/inventory/add/" class="btn btn-primary" data-role="admin">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                Add Item
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="table-wrapper">
+                        <table class="table" id="inventory-table">
+                            <thead>
+                                <tr>
+                                    <th class="sortable" data-column="sku">SKU</th>
+                                    <th class="sortable" data-column="name">Name</th>
+                                    <th class="sortable" data-column="category">Category</th>
+                                    <th class="sortable" data-column="quantity">Quantity</th>
+                                    <th class="sortable" data-column="unit_price">Unit Price</th>
+                                    <th>Total Value</th>
+                                    <th class="sortable" data-column="expiry_date">Expiry Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventory-tbody">
+                                <tr>
+                                    <td colspan="8" style="text-align: center; padding: var(--space-4);">
+                                        Loading...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="table-pagination">
+                        <div class="pagination-info" id="pagination-info">
+                            Showing 0 to 0 of 0 results
+                        </div>
+                        <div class="pagination-controls">
+                            <select id="page-size" class="form-control" style="width: 80px;">
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                            <button class="btn btn-secondary btn-sm" id="prev-btn" disabled>Previous</button>
+                            <button class="btn btn-secondary btn-sm" id="next-btn" disabled>Next</button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="{% static 'js/api-client.js' %}"></script>
+    <script src="{% static 'js/auth.js' %}"></script>
+    <script src="{% static 'js/theme.js' %}"></script>
+    <script src="{% static 'js/ui-utils.js' %}"></script>
+    <script src="{% static 'js/inventory.js' %}"></script>
+    <script src="{% static 'js/layout-loader.js' %}"></script>
+</body>
+
+</html>

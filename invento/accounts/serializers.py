@@ -9,29 +9,29 @@ class UserSerializer(serializers.ModelSerializer):
     """Serializer for user details"""
     class Meta:
         model = User
-        fields = ['id', 'email', 'role', 'is_active', 'is_staff']
+        fields = ['id', 'email', 'first_name', 'last_name', 'role', 'is_active', 'is_staff']
         read_only_fields = ['id', 'is_active', 'is_staff']
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):
     """Serializer for user registration"""
     password = serializers.CharField(write_only=True, min_length=8)
-    password_confirm = serializers.CharField(write_only=True)
+    first_name = serializers.CharField(required=False, allow_blank=True)
+    last_name = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = User
-        fields = ['email', 'password', 'password_confirm', 'role']
-
-    def validate(self, attrs):
-        if attrs['password'] != attrs['password_confirm']:
-            raise serializers.ValidationError({"password": "Passwords do not match"})
-        return attrs
+        fields = ['email', 'password', 'first_name', 'last_name', 'role']
+        extra_kwargs = {
+            'role': {'required': False}
+        }
 
     def create(self, validated_data):
-        validated_data.pop('password_confirm')
         user = User.objects.create_user(
             email=validated_data['email'],
             password=validated_data['password'],
+            first_name=validated_data.get('first_name', ''),
+            last_name=validated_data.get('last_name', ''),
             role=validated_data.get('role', 'viewer')
         )
         return user
@@ -54,6 +54,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data['user'] = {
             'id': self.user.id,
             'email': self.user.email,
+            'first_name': self.user.first_name,
+            'last_name': self.user.last_name,
             'role': self.user.role,
         }
         return data

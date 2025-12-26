@@ -1,7 +1,18 @@
-from django.urls import path
-from .views import InventoryCSVReportAPIView, InventoryExcelReportAPIView
+"""
+Reports API URL Configuration
+Uses DRF Router for ViewSet-based routing.
 
-urlpatterns = [
-    path('inventory/csv/', InventoryCSVReportAPIView.as_view()),
-    path('inventory/xlsx/', InventoryExcelReportAPIView.as_view()),
-]
+Endpoints:
+    GET /api/reports/           - List available report endpoints
+    GET /api/reports/download/  - Download CSV or Excel report
+    GET /api/reports/summary/   - Get report summary statistics
+"""
+from rest_framework.routers import DefaultRouter
+from .views import ReportsViewSet
+
+# Create router and register viewset
+router = DefaultRouter()
+router.register(r'', ReportsViewSet, basename='reports')
+
+# Use router URLs
+urlpatterns = router.urls

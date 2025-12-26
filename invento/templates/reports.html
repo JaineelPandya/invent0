@@ -1,0 +1,149 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Invento</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard-layout.css' %}">
+</head>
+
+<body>
+    <div class="app-container">
+        <div id="sidebar-placeholder"></div>
+
+        <div class="main-content">
+            <div id="navbar-placeholder"></div>
+
+            <main class="page-content">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="card-title">Generate Report</h3>
+                    </div>
+                    <div class="card-body">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-3);">
+                            <div class="form-group">
+                                <label for="start_date" class="form-label">Start Date</label>
+                                <input type="date" id="start_date" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="end_date" class="form-label">End Date</label>
+                                <input type="date" id="end_date" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="report-status" class="form-label">Status Filter</label>
+                                <select id="report-status" class="form-control">
+                                    <option value="">All Items</option>
+                                    <option value="in_stock">In Stock</option>
+                                    <option value="low_stock">Low Stock</option>
+                                    <option value="expired">Expired</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: var(--space-2); margin-top: var(--space-3);">
+                            <button class="btn btn-success btn-export" onclick="downloadReport('csv')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                Download CSV
+                            </button>
+                            <button class="btn btn-success btn-export" onclick="downloadReport('xlsx')">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                Download Excel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Report Summary</h3>
+                    </div>
+                    <div class="card-body">
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-3);">
+                            <div
+                                style="text-align: center; padding: var(--space-3); background: var(--bg-secondary); border-radius: var(--radius-md);">
+                                <div class="text-tertiary text-sm">Total Items</div>
+                                <div class="text-2xl font-semibold text-primary" id="report-total">0</div>
+                            </div>
+                            <div
+                                style="text-align: center; padding: var(--space-3); background: var(--bg-secondary); border-radius: var(--radius-md);">
+                                <div class="text-tertiary text-sm">Total Value</div>
+                                <div class="text-2xl font-semibold text-primary" id="report-value">₹0</div>
+                            </div>
+                            <div
+                                style="text-align: center; padding: var(--space-3); background: var(--bg-secondary); border-radius: var(--radius-md);">
+                                <div class="text-tertiary text-sm">Low Stock</div>
+                                <div class="text-2xl font-semibold text-warning" id="report-low">0</div>
+                            </div>
+                            <div
+                                style="text-align: center; padding: var(--space-3); background: var(--bg-secondary); border-radius: var(--radius-md);">
+                                <div class="text-tertiary text-sm">Expired</div>
+                                <div class="text-2xl font-semibold text-danger" id="report-expired">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="{% static 'js/api-client.js' %}"></script>
+    <script src="{% static 'js/auth.js' %}"></script>
+    <script src="{% static 'js/theme.js' %}"></script>
+    <script src="{% static 'js/ui-utils.js' %}"></script>
+    <script src="{% static 'js/layout-loader.js' %}"></script>
+
+    <script>
+        async function downloadReport(format) {
+            const startDate = document.getElementById('start_date').value;
+            const endDate = document.getElementById('end_date').value;
+            const status = document.getElementById('report-status').value;
+
+            try {
+                const params = new URLSearchParams();
+                if (startDate) params.append('start_date', startDate);
+                if (endDate) params.append('end_date', endDate);
+                if (status) params.append('status', status);
+                params.append('file_format', format);
+
+                const filename = `inventory_report_${new Date().toISOString().split('T')[0]}.${format}`;
+                await apiClient.downloadFile(`/reports/download/?${params.toString()}`, filename);
+                showToast('Success', `Report downloaded as ${format.toUpperCase()}`, 'success');
+            } catch (error) {
+                showToast('Error', 'Failed to download report', 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof applyRoleBasedUI === 'function') {
+                applyRoleBasedUI();
+            }
+
+            // Set default dates (last 30 days)
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() - 30);
+
+            document.getElementById('end_date').valueAsDate = endDate;
+            document.getElementById('start_date').valueAsDate = startDate;
+        });
+    </script>
+</body>
+
+</html>

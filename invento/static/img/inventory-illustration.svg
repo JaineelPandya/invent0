@@ -1,0 +1,28 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="95" fill="#eff6ff" opacity="0.5"/>
+  
+  <!-- Warehouse shelves -->
+  <rect x="40" y="60" width="120" height="8" rx="2" fill="#1e3a8a"/>
+  <rect x="40" y="100" width="120" height="8" rx="2" fill="#1e3a8a"/>
+  <rect x="40" y="140" width="120" height="8" rx="2" fill="#1e3a8a"/>
+  
+  <!-- Boxes on shelves -->
+  <rect x="50" y="70" width="25" height="25" rx="2" fill="#10b981"/>
+  <rect x="85" y="70" width="25" height="25" rx="2" fill="#3b82f6"/>
+  <rect x="120" y="70" width="25" height="25" rx="2" fill="#f59e0b"/>
+  
+  <rect x="50" y="110" width="25" height="25" rx="2" fill="#3b82f6"/>
+  <rect x="85" y="110" width="25" height="25" rx="2" fill="#10b981"/>
+  
+  <rect x="85" y="150" width="25" height="25" rx="2" fill="#f59e0b"/>
+  <rect x="120" y="150" width="25" height="25" rx="2" fill="#10b981"/>
+  
+  <!-- Support pillars -->
+  <rect x="35" y="50" width="6" height="130" rx="2" fill="#475569"/>
+  <rect x="159" y="50" width="6" height="130" rx="2" fill="#475569"/>
+  
+  <!-- Checkmark icon overlay -->
+  <circle cx="155" cy="50" r="20" fill="#10b981"/>
+  <path d="M148 50 L153 55 L163 43" stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

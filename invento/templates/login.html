@@ -1,0 +1,199 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Invento Inventory Management</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+    <style>
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+            padding: var(--space-3);
+        }
+
+        .login-card {
+            background-color: var(--bg-primary);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-xl);
+            max-width: 450px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .login-header {
+            text-align: center;
+            padding: var(--space-6) var(--space-4) var(--space-4);
+        }
+
+        .login-logo {
+            font-family: var(--font-heading);
+            font-size: var(--font-size-3xl);
+            font-weight: var(--font-weight-bold);
+            color: var(--color-primary-600);
+            margin-bottom: var(--space-2);
+        }
+
+        .login-subtitle {
+            color: var(--text-secondary);
+            font-size: var(--font-size-sm);
+        }
+
+        .login-illustration {
+            max-width: 200px;
+            margin: 0 auto var(--space-4);
+        }
+
+        .login-body {
+            padding: 0 var(--space-4) var(--space-6);
+        }
+
+        .login-footer {
+            text-align: center;
+            padding-top: var(--space-4);
+            color: var(--text-secondary);
+            font-size: var(--font-size-sm);
+        }
+
+        @media (max-width: 480px) {
+            .login-card {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h1 class="login-logo">Invento</h1>
+                <p class="login-subtitle">Enterprise Inventory Management System</p>
+                <img src="{% static 'img/inventory-illustration.svg' %}" alt="Inventory" class="login-illustration">
+            </div>
+
+            <div class="login-body">
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="email" class="form-label form-label-required">Email Address</label>
+                        <div class="input-group">
+                            <span class="input-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <path
+                                        d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z">
+                                    </path>
+                                    <polyline points="22,6 12,13 2,6"></polyline>
+                                </svg>
+                            </span>
+                            <input type="email" id="email" class="form-control" placeholder="you@company.com" required
+                                autocomplete="email">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password" class="form-label form-label-required">Password</label>
+                        <div class="input-group">
+                            <span class="input-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                </svg>
+                            </span>
+                            <input type="password" id="password" class="form-control" placeholder="Enter your password"
+                                required autocomplete="current-password">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="checkbox-wrapper">
+                            <input type="checkbox" id="remember-me" class="checkbox">
+                            <label for="remember-me" style="cursor: pointer; user-select: none;">Remember me</label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 btn-lg" id="login-btn">
+                        Sign In
+                    </button>
+                </form>
+
+                <div class="login-footer">
+                    <p>&copy; 2025 Invento. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="{% static 'js/api-client.js' %}"></script>
+    <script src="{% static 'js/auth.js' %}"></script>
+    <script src="{% static 'js/ui-utils.js' %}"></script>
+
+    <script>
+        // Redirect if already logged in
+        if (authManager.isAuthenticated()) {
+            window.location.href = '/dashboard/';
+        }
+
+        // Handle login form submission
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            // Clear previous errors
+            clearFieldError('email');
+            clearFieldError('password');
+
+            // Validate
+            if (!validateEmail(email)) {
+                showFieldError('email', 'Please enter a valid email address');
+                return;
+            }
+
+            if (!validateRequired(password)) {
+                showFieldError('password', 'Password is required');
+                return;
+            }
+
+            // Show loading state
+            showLoading('login-btn');
+
+            try {
+                const result = await authManager.login(email, password);
+
+                if (result.success) {
+                    showToast('Success', 'Login successful! Redirecting...', 'success', 2000);
+                    setTimeout(() => {
+                        window.location.href = '/dashboard/';
+                    }, 1000);
+                } else {
+                    hideLoading('login-btn');
+                    showToast('Login Failed', result.message, 'error');
+                }
+            } catch (error) {
+                hideLoading('login-btn');
+                showToast('Error', 'An unexpected error occurred. Please try again.', 'error');
+            }
+        });
+    </script>
+</body>
+
+</html>

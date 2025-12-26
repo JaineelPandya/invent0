@@ -1,0 +1,170 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Item - Invento</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="{% static 'css/dashboard-layout.css' %}">
+</head>
+
+<body>
+  <div class="app-container">
+    <div id="sidebar-placeholder"></div>
+
+    <div class="main-content">
+      <div id="navbar-placeholder"></div>
+
+      <main class="page-content">
+        <div class="card" style="max-width: 800px; margin: 0 auto;">
+          <div class="card-header">
+            <h3 class="card-title">Edit Inventory Item</h3>
+          </div>
+          <div class="card-body" id="form-container">
+            <div style="text-align: center; padding: var(--space-4);">
+              Loading...
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="{% static 'js/api-client.js' %}"></script>
+  <script src="{% static 'js/auth.js' %}"></script>
+  <script src="{% static 'js/theme.js' %}"></script>
+  <script src="{% static 'js/ui-utils.js' %}"></script>
+  <script src="{% static 'js/layout-loader.js' %}"></script>
+
+  <script>
+    const itemId = window.location.pathname.split('/').filter(Boolean).pop();
+
+    async function loadItem() {
+      try {
+        const item = await apiClient.get(`/inventory/${itemId}/`);
+        renderForm(item);
+      } catch (error) {
+        showToast('Error', 'Failed to load item', 'error');
+        setTimeout(() => window.location.href = '/inventory/', 2000);
+      }
+    }
+
+    function renderForm(item) {
+      document.getElementById('form-container').innerHTML = `
+        <form id="edit-item-form">
+          <div class="form-group">
+            <label for="name" class="form-label form-label-required">Item Name</label>
+            <input type="text" id="name" class="form-control" value="${item.name}" required>
+          </div>
+
+          <div class="form-group">
+            <label for="sku" class="form-label form-label-required">SKU</label>
+            <input type="text" id="sku" class="form-control" value="${item.sku}" required>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3);">
+            <div class="form-group">
+              <label for="category" class="form-label">Category</label>
+              <input type="text" id="category" class="form-control" value="${item.category_name || ''}">
+            </div>
+            <div class="form-group">
+              <label for="supplier" class="form-label">Supplier</label>
+              <input type="text" id="supplier" class="form-control" value="${item.supplier_name || ''}">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-3);">
+            <div class="form-group">
+              <label for="quantity" class="form-label form-label-required">Quantity</label>
+              <input type="number" id="quantity" class="form-control" value="${item.quantity}" required>
+            </div>
+            <div class="form-group">
+              <label for="unit_price" class="form-label form-label-required">Unit Price</label>
+              <input type="number" id="unit_price" class="form-control" step="0.01" value="${item.unit_price}" required>
+            </div>
+            <div class="form-group">
+              <label for="reorder_level" class="form-label">Reorder Level</label>
+              <input type="number" id="reorder_level" class="form-control" value="${item.reorder_level || 10}">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="expiry_date" class="form-label">Expiry Date</label>
+            <input type="date" id="expiry_date" class="form-control" value="${item.expiry_date || ''}">
+          </div>
+
+          <div class="form-group">
+            <label for="description" class="form-label">Description</label>
+            <textarea id="description" class="form-control" rows="4">${item.description || ''}</textarea>
+          </div>
+
+          <div style="display: flex; gap: var(--space-2); justify-content: space-between;">
+            <button type="button" class="btn btn-danger btn-delete" onclick="confirmDelete()">Delete Item</button>
+            <div style="display: flex; gap: var(--space-2);">
+              <a href="/inventory/" class="btn btn-secondary">Cancel</a>
+              <button type="submit" class="btn btn-primary" id="submit-btn">Save Changes</button>
+            </div>
+          </div>
+        </form>
+      `;
+
+      document.getElementById('edit-item-form').addEventListener('submit', handleSubmit);
+    }
+
+    async function handleSubmit(e) {
+      e.preventDefault();
+
+      const formData = {
+        name: document.getElementById('name').value.trim(),
+        sku: document.getElementById('sku').value.trim(),
+        category_name: document.getElementById('category').value.trim() || null,
+        supplier_name: document.getElementById('supplier').value.trim() || null,
+        quantity: parseInt(document.getElementById('quantity').value),
+        unit_price: parseFloat(document.getElementById('unit_price').value),
+        reorder_level: parseInt(document.getElementById('reorder_level').value) || 10,
+        expiry_date: document.getElementById('expiry_date').value || null,
+        description: document.getElementById('description').value.trim() || null,
+      };
+
+      showLoading('submit-btn');
+
+      try {
+        await apiClient.put(`/inventory/${itemId}/`, formData);
+        showToast('Success', 'Item updated successfully!', 'success');
+        setTimeout(() => window.location.href = '/inventory/', 1500);
+      } catch (error) {
+        hideLoading('submit-btn');
+        showToast('Error', error.message || 'Failed to update item', 'error');
+      }
+    }
+
+    async function confirmDelete() {
+      modalManager.confirm(
+        'Delete Item',
+        'Are you sure you want to delete this item? This action cannot be undone.',
+        async () => {
+          try {
+            await apiClient.delete(`/inventory/${itemId}/`);
+            showToast('Success', 'Item deleted successfully', 'success');
+            setTimeout(() => window.location.href = '/inventory/', 1500);
+          } catch (error) {
+            showToast('Error', 'Failed to delete item', 'error');
+          }
+        }
+      );
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadItem();
+    });
+  </script>
+</body>
+
+</html>
